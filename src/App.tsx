@@ -114,7 +114,7 @@ const App = () => {
           height: "100svh",
           justifyContent: "center",
           pointerEvents: addOrderMutation.isPending ? "none" : "initial",
-          opacity: addOrderMutation.isPending ? 0.5 : 1,
+          bgColor: mode == "order" ? "red.50" : "blue.50",
         })}
       >
         <div
@@ -127,12 +127,13 @@ const App = () => {
             rowGap: 4,
             display: "flex",
             flexDir: "column",
+            opacity: addOrderMutation.isPending ? 0.5 : 1,
           })}
         >
           <div
             className={css({
               fontSize: "large",
-              // bgColor: "blue.100",
+              bgColor: "white",
               borderColor: "blue.100",
               borderWidth: "thick",
               padding: 2,
@@ -157,7 +158,7 @@ const App = () => {
           <div
             className={css({
               fontSize: "large",
-              // bgColor: "red.100",
+              bgColor: "white",
               borderColor: "red.100",
               borderWidth: "thick",
               padding: 2,
