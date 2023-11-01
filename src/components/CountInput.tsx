@@ -13,7 +13,7 @@ const CountInput: React.FC<Props> = ({ count, setCount }) => {
         display: "grid",
         gridTemplateRows: "1fr",
         gridTemplateColumns: "100px 1fr 100px",
-        height: 100,
+        height: "80px",
         bgColor: "gray.200",
         borderColor: "gray.200",
         borderWidth: 4,

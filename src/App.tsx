@@ -11,9 +11,31 @@ type OrderData = {
   curry: number;
 };
 
+type Mode = "order" | "deliver";
+
+const modeParams = (mode: Mode) => {
+  switch (mode) {
+    case "order":
+      return {
+        color: "red.400",
+        modeText: "注文モード",
+        method: "ADD_ORDER",
+        decideText: "注文確定",
+      };
+    case "deliver":
+      return {
+        color: "blue.400",
+        modeText: "受渡モード",
+        method: "DELIVER_ORDER",
+        decideText: "受渡確定",
+      };
+  }
+};
+
 const App = () => {
   const [nunCount, setNunCount] = useState<number>(0);
   const [curryCount, setCurryCount] = useState<number>(0);
+  const [mode, setMode] = useState<Mode>("order");
 
   const queryClient = useQueryClient();
 
@@ -31,7 +53,7 @@ const App = () => {
           return res.json();
         })
         .then((res) => {
-          console.log("fetched!", res);
+          // console.log("fetched!", res);
           return res;
         });
     },
@@ -52,7 +74,7 @@ const App = () => {
           return res.json();
         })
         .then((res) => {
-          console.log("fetched!", res);
+          // console.log("fetched!", res);
           return res;
         });
     },
@@ -65,13 +87,18 @@ const App = () => {
         method: "POST",
         body: JSON.stringify({
           authToken: token,
-          method: "ADD_ORDER",
+          method: modeParams(mode).method,
           params: order,
         }),
       }).then((res) => {
         setNunCount(0);
         setCurryCount(0);
         return res;
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ["AllOrder", "UndeliveredOrder"],
       });
     },
   });
@@ -105,59 +132,113 @@ const App = () => {
           <div
             className={css({
               fontSize: "large",
-              bgColor: "blue.100",
+              // bgColor: "blue.100",
+              borderColor: "blue.100",
+              borderWidth: "thick",
               padding: 2,
               borderRadius: "md",
+              marginBottom: -2,
             })}
           >
             <p>現在の総注文数</p>
-            <p>
+            <pre>
               🍛カレー
               <span className={css({ fontSize: "4xl", fontWeight: "bold" })}>
                 {getAllOrder.isFetched ? getAllOrder.data.curry : "取得中"}
               </span>
-              個　　　🍞ナン
+              個&#009;🍞ナン
               <span className={css({ fontSize: "4xl", fontWeight: "bold" })}>
                 {getAllOrder.isFetched ? getAllOrder.data.nan : "取得中"}
               </span>
               個
-            </p>
+            </pre>
           </div>
 
           <div
             className={css({
               fontSize: "large",
-              bgColor: "red.100",
+              // bgColor: "red.100",
+              borderColor: "red.100",
+              borderWidth: "thick",
               padding: 2,
               borderRadius: "md",
             })}
           >
             <p>現在の未完了注文数</p>
 
-            <p>
+            <pre>
               🍛カレー
               <span className={css({ fontSize: "4xl", fontWeight: "bold" })}>
                 {getUndeliveredOrder.isFetched
                   ? getUndeliveredOrder.data.undeliveredCurry
-                  : "取得中"}
+                  : ""}
               </span>
-              個　　　🍞ナン
+              個&#009;🍞ナン
               <span className={css({ fontSize: "4xl", fontWeight: "bold" })}>
                 {getUndeliveredOrder.isFetched
                   ? getUndeliveredOrder.data.undeliveredNan
-                  : "取得中"}
+                  : ""}
               </span>
               個
-            </p>
+            </pre>
+          </div>
+
+          <div
+            className={css({
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              bgColor: mode == "order" ? "red.400" : "blue.400",
+              color: "white",
+              fontWeight: "bold",
+            })}
+            onClick={() => {
+              if (mode == "order") {
+                setMode("deliver");
+              } else {
+                setMode("order");
+              }
+            }}
+          >
+            {modeParams(mode).modeText}
+          </div>
+
+          <div
+            className={css({
+              display: "flex",
+              padding: 2,
+              borderRadius: "md",
+              alignItems: "center",
+              justifyContent: "center",
+              bgColor: "gray.200",
+              fontSize: "2xl",
+              fontWeight: "bold",
+            })}
+            onClick={() => {
+              setCurryCount(curryCount + 1);
+              setNunCount(nunCount + 1);
+            }}
+          >
+            🍞ナン・🍛カレーセット＋１
           </div>
 
           <div>
-            <h2 className={css({ fontSize: "xl" })}>🍛カレー</h2>
+            <h2 className={css({ fontSize: "xl" })}>
+              🍛カレー
+              <span className={css({ color: "red", paddingLeft: 2 })}>
+                {curryCount < 0 ? "   入力値がマイナスです" : ""}
+              </span>
+            </h2>
             <CountInput count={curryCount} setCount={setCurryCount} />
           </div>
 
           <div>
-            <h2 className={css({ fontSize: "xl" })}>🍞ナン</h2>
+            <h2 className={css({ fontSize: "xl" })}>
+              🍞ナン
+              <span className={css({ color: "red", paddingLeft: 2 })}>
+                {nunCount < 0 ? "   入力値がマイナスです" : ""}
+              </span>
+            </h2>
             <CountInput count={nunCount} setCount={setNunCount} />
           </div>
 
@@ -171,12 +252,14 @@ const App = () => {
               padding: 3,
             })}
             onClick={() => {
-              if (nunCount == 0 && curryCount == 0) {
+              if (nunCount != 0 || curryCount != 0) {
                 addOrderMutation.mutate({ nan: nunCount, curry: curryCount });
               }
             }}
           >
-            {addOrderMutation.isPending ? "送信中" : "注文決定"}
+            {addOrderMutation.isPending
+              ? "送信中"
+              : modeParams(mode).decideText}
           </button>
         </div>
       </div>
