@@ -39,14 +39,14 @@ const App = () => {
 
   const queryClient = useQueryClient();
 
-  const getAllOrder = useQuery({
-    queryKey: ["AllOrder"],
+  const getOrder = useQuery({
+    queryKey: ["Order"],
     queryFn: () => {
       return fetch(apiurl, {
         method: "POST",
         body: JSON.stringify({
           authToken: token,
-          method: "GET_ALL_ORDER",
+          method: "GET_ORDER",
         }),
       })
         .then((res) => {
@@ -54,28 +54,12 @@ const App = () => {
         })
         .then((res) => {
           // console.log("fetched!", res);
-          return res;
-        });
-    },
-    refetchInterval: 5000,
-  });
-
-  const getUndeliveredOrder = useQuery({
-    queryKey: ["UndeliveredOrder"],
-    queryFn: () => {
-      return fetch(apiurl, {
-        method: "POST",
-        body: JSON.stringify({
-          authToken: token,
-          method: "GET_UNDELIVERED_ORDER",
-        }),
-      })
-        .then((res) => {
-          return res.json();
-        })
-        .then((res) => {
-          // console.log("fetched!", res);
-          return res;
+          return res as {
+            nan: number;
+            curry: number;
+            undeliveredNan: number;
+            undeliveredCurry: number;
+          };
         });
     },
     refetchInterval: 5000,
@@ -98,7 +82,7 @@ const App = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({
-        queryKey: ["AllOrder", "UndeliveredOrder"],
+        queryKey: ["Order"],
       });
     },
   });
@@ -145,11 +129,11 @@ const App = () => {
             <pre>
               🍛カレー
               <span className={css({ fontSize: "4xl", fontWeight: "bold" })}>
-                {getAllOrder.isFetched ? getAllOrder.data.curry : "取得中"}
+                {getOrder.isFetched ? getOrder.data?.curry : "取得中"}
               </span>
               個&#009;🍞ナン
               <span className={css({ fontSize: "4xl", fontWeight: "bold" })}>
-                {getAllOrder.isFetched ? getAllOrder.data.nan : "取得中"}
+                {getOrder.isFetched ? getOrder.data?.nan : "取得中"}
               </span>
               個
             </pre>
@@ -170,15 +154,11 @@ const App = () => {
             <pre>
               🍛カレー
               <span className={css({ fontSize: "4xl", fontWeight: "bold" })}>
-                {getUndeliveredOrder.isFetched
-                  ? getUndeliveredOrder.data.undeliveredCurry
-                  : ""}
+                {getOrder.isFetched ? getOrder.data?.undeliveredCurry : ""}
               </span>
               個&#009;🍞ナン
               <span className={css({ fontSize: "4xl", fontWeight: "bold" })}>
-                {getUndeliveredOrder.isFetched
-                  ? getUndeliveredOrder.data.undeliveredNan
-                  : ""}
+                {getOrder.isFetched ? getOrder.data?.undeliveredNan : ""}
               </span>
               個
             </pre>
